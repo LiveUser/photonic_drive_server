@@ -79,6 +79,7 @@ class _HomePageState extends State<HomePage> {
                     int parsedServerPort = int.parse(serverPort.text);
                     Navigator.push(context, MaterialPageRoute(
                       builder: (context) => Dashboard(
+                        databaseLocation: databaseLocation,
                         serverPort: parsedServerPort,
                       ),
                     ));

@@ -5,8 +5,10 @@ import 'dart:io';
 class Dashboard extends StatelessWidget {
   const Dashboard({
     super.key,
+    required this.databaseLocation,
     required this.serverPort,
   });
+  final String databaseLocation;
   final int serverPort;
 
   Future<HttpServer> bindServer()async{
@@ -65,8 +67,18 @@ class Dashboard extends StatelessWidget {
               );
             }else if(snapshot.connectionState == ConnectionState.done){
               //TODO: Display info like ip, port and allow creating access tokens. Access tokens can be copied or scanned using QR codes.
-
-              return Placeholder();
+              HttpServer httpServer = snapshot.data as HttpServer;
+              return Column(
+                spacing: 10,
+                children: [
+                  ServerInfo(
+                    httpServer: httpServer,
+                  ),
+                  TokenManager(
+                    databaseLocation: databaseLocation,
+                  ),
+                ],
+              );
             }else{
               return Center(
                 child: CircularProgressIndicator(
@@ -77,6 +89,88 @@ class Dashboard extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+class ServerInfo extends StatelessWidget {
+  const ServerInfo({
+    super.key,
+    required this.httpServer,
+  });
+
+  final HttpServer httpServer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(10),
+      color: Colors.deepPurple,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        spacing: 10,
+        children: [
+          Text(
+            "Server IP: ${httpServer.address.host}",
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            "Server Port: ${httpServer.port}",
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class TokenManager extends StatelessWidget {
+  const TokenManager({
+    super.key,
+    required this.databaseLocation,
+  });
+  final String databaseLocation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 10,
+      children: [
+        GestureDetector(
+          onTap: (){
+            //TODO: Create access token
+
+          },
+          child: Container(
+            color: Colors.deepPurple,
+            width: double.infinity,
+            padding: EdgeInsets.all(10),
+            child: Row(
+              spacing: 10,
+              children: [
+                Icon(
+                  Icons.add_circle,
+                  color: Colors.white,
+                ),
+                Expanded(
+                  child: Text(
+                    "Create Access Token",
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        //TODO: Display access tokens
+        
+      ],
     );
   }
 }
