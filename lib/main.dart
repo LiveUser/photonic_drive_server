@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:photonic_drive_server/dashboard.dart';
 import 'package:photonic_drive_server/widgets.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:cherry_toast/cherry_toast.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,28 +20,36 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String databaseLocation = "";
+
+  TextEditingController serverPort = TextEditingController();
+
+  @override
   Widget build(BuildContext context) {
-    String databaseLocation = "";
-    TextEditingController serverPort = TextEditingController();
 
     return Scaffold(
       appBar: appBar(),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           spacing: 10,
           children: [
-            //TODO: Database Folder Picker
+            //Database Folder Picker
             DatabasePicker(
               onChange: (selectedPath){
                 databaseLocation = selectedPath;
               },
             ),
-            //TODO: Server Port
+            //Server Port
             TextField(
               controller: serverPort,
               decoration: InputDecoration(
@@ -49,7 +59,38 @@ class HomePage extends StatelessWidget {
               ),
             ),
             StartServerButton(
-
+              onTap: (){
+                //Validate and navigate to the other screen
+                if(databaseLocation.isEmpty){
+                  CherryToast.info(
+                    title: Text(
+                      "Database location is required",
+                    ),
+                  ).show(context);
+                }else if(serverPort.text.isEmpty){
+                  CherryToast.info(
+                    title: Text(
+                      "Server port is required",
+                    ),
+                  ).show(context);
+                }else{
+                  //Make sure that port is a valid integer
+                  try{
+                    int parsedServerPort = int.parse(serverPort.text);
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => Dashboard(
+                        serverPort: parsedServerPort,
+                      ),
+                    ));
+                  }catch(error){
+                    CherryToast.error(
+                      title: Text(
+                        "Server port must be an integer",
+                      ),
+                    ).show(context);
+                  }
+                }
+              },
             ),
           ],
         ),
@@ -86,11 +127,11 @@ class _DatabasePickerState extends State<DatabasePicker> {
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(10),
-        color: Colors.black,
+        color: Colors.deepPurple,
         child: Text(
           selectedPath.isEmpty ? "Click to pick database location" : selectedPath,
           style: TextStyle(
-            color: Colors.amber,
+            color: Colors.white,
           ),
         ),
       ),
@@ -98,32 +139,40 @@ class _DatabasePickerState extends State<DatabasePicker> {
   }
 }
 class StartServerButton extends StatelessWidget {
-  const StartServerButton({super.key});
-
+  const StartServerButton({
+    super.key,
+    required this.onTap,
+  });
+  final Function onTap;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: Colors.black,
-      padding: EdgeInsets.all(20),
-      child: Row(
-        spacing: 10,
-        children: [
-          Expanded(
-            child: Text(
-              "Start Server",
-              style: TextStyle(
-                color: Colors.amber,
-                fontSize: 22,
-                fontFamily: "BlackOpsOne",
+    return GestureDetector(
+      onTap: (){
+        onTap();
+      },
+      child: Container(
+        width: double.infinity,
+        color: Colors.deepPurple,
+        padding: EdgeInsets.all(20),
+        child: Row(
+          spacing: 10,
+          children: [
+            Expanded(
+              child: Text(
+                "Start Server",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontFamily: "BlackOpsOne",
+                ),
               ),
             ),
-          ),
-          Icon(
-            Icons.chevron_right,
-            color: Colors.amber,
-          ),
-        ],
+            Icon(
+              Icons.chevron_right,
+              color: Colors.white,
+            ),
+          ],
+        ),
       ),
     );
   }
