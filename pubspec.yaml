@@ -33,6 +33,9 @@ dependencies:
   file_picker: ^11.0.2
   cherry_toast: ^1.13.0
   graphene_server: ^0.2.0+21
+  power_plant: ^1.0.2+3
+  confirm_button: ^1.0.0+2
+  objective_db: ^0.3.3+27
 
 dev_dependencies:
   flutter_test:
