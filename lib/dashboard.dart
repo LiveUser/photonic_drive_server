@@ -1,5 +1,6 @@
 import 'package:cherry_toast/cherry_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:graphene_server/graphene_server.dart';
 import 'package:photonic_drive_server/widgets.dart';
 import 'dart:io';
 import 'package:objective_db/objective_db.dart';
@@ -20,6 +21,28 @@ class Dashboard extends StatelessWidget {
   Future<HttpServer> bindServer()async{
     try{
       HttpServer server = await HttpServer.bind(InternetAddress.loopbackIPv4, serverPort);
+      //Create server functions
+      startServer(
+        server: server, 
+        getHandler: GetHandler(
+          handler: (arguments)async{ 
+            return Uint8List.fromList([]);
+          }
+        ), 
+        query: GrapheneQuery(
+          resolver: {
+            //TODO: Get images metadata list
+            //TODO: Fetch image thumbnail
+          },
+        ), 
+        mutations: GrapheneMutation(
+          resolver: {
+            //TODO: Upload image
+            //TODO: Delete image
+          },
+        ), 
+        redirectHandler: (arguments)=> null,
+      );
       return server;
     }catch(error){
       throw error.toString();
@@ -212,7 +235,7 @@ class _TokenManagerState extends State<TokenManager> {
             ),
           ),
         ),
-        //TODO: Display access tokens
+        //Display access tokens
         SingleChildScrollView(
           child: Column(
             spacing: 10,
