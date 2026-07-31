@@ -19,11 +19,17 @@ class Dashboard extends StatelessWidget {
   final int serverPort;
 
   Future<HttpServer> bindServer()async{
+    //Directory x = Directory("../");
+    //x = Directory(x.resolveSymbolicLinksSync());
+    //print(x.absolute.path);
     try{
       HttpServer server = await HttpServer.bind(InternetAddress.loopbackIPv4, serverPort);
       //Create server functions
       startServer(
         server: server, 
+        isolateVariables: {
+          "databaseLocation": databaseLocation,
+        },
         getHandler: GetHandler(
           handler: (arguments)async{ 
             return Uint8List.fromList([]);
@@ -31,14 +37,140 @@ class Dashboard extends StatelessWidget {
         ), 
         query: GrapheneQuery(
           resolver: {
+            //TODO: List folder contents
+
             //TODO: Get images metadata list
+
             //TODO: Fetch image thumbnail
+            
           },
         ), 
         mutations: GrapheneMutation(
           resolver: {
-            //TODO: Upload image
-            //TODO: Delete image
+            //Create directory
+            "createDir":(arguments)async{
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              if(Platform.isWindows){
+                drivePath.replaceAll("/", "\\");
+              }
+              Directory newDirectory = Directory(arguments["fullPath"]);
+              //This resolves things like ../ to an absolute path
+              newDirectory = Directory(newDirectory.resolveSymbolicLinksSync());
+              if(newDirectory.path.startsWith(drivePath)){
+                if(!newDirectory.existsSync()){
+                  newDirectory.createSync(recursive: true);
+                  return "Successfully created Directory.";
+                }else{
+                  throw "Directory already exists.";
+                }
+              }else{
+                throw "Access to outside the drive folder is denied.";
+              }
+            },
+            //Create file
+            "createFile":(arguments)async{
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              if(Platform.isWindows){
+                drivePath.replaceAll("/", "\\");
+              }
+              File newFile = File(arguments["fullPath"]);
+              //This resolves things like ../ to an absolute path
+              newFile = File(newFile.resolveSymbolicLinksSync());
+              if(newFile.path.startsWith(drivePath)){
+                if(!newFile.existsSync()){
+                  newFile.createSync(recursive: true);
+                  return "Successfully created File.";
+                }else{
+                  throw "File already exists.";
+                }
+              }else{
+                throw "Access to outside the drive folder is denied.";
+              }
+            },
+            //Delete directory
+            "deleteDir":(arguments)async{
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              if(Platform.isWindows){
+                drivePath.replaceAll("/", "\\");
+              }
+              Directory directory = Directory(arguments["fullPath"]);
+              //This resolves things like ../ to an absolute path
+              directory = Directory(directory.resolveSymbolicLinksSync());
+              if(directory.path.startsWith(drivePath)){
+                if(directory.existsSync()){
+                  directory.deleteSync(recursive: true);
+                  return "Successfully deleted Directory.";
+                }else{
+                  throw "Directory does not exists.";
+                }
+              }else{
+                throw "Access to outside the drive folder is denied.";
+              }
+            },
+            //Delete file
+            "deleteFile":(arguments)async{
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              if(Platform.isWindows){
+                drivePath.replaceAll("/", "\\");
+              }
+              File file = File(arguments["fullPath"]);
+              //This resolves things like ../ to an absolute path
+              file = File(file.resolveSymbolicLinksSync());
+              if(file.path.startsWith(drivePath)){
+                if(file.existsSync()){
+                  file.deleteSync(recursive: true);
+                  return "Successfully deleted File.";
+                }else{
+                  throw "File does not exists.";
+                }
+              }else{
+                throw "Access to outside the drive folder is denied.";
+              }
+            },
+            //Rename directory
+            "renameDir":(arguments)async{
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              if(Platform.isWindows){
+                drivePath.replaceAll("/", "\\");
+              }
+              String newName = arguments["newName"];
+              Directory directory = Directory(arguments["fullPath"]);
+              //This resolves things like ../ to an absolute path
+              directory = Directory(directory.resolveSymbolicLinksSync());
+              if(directory.path.startsWith(drivePath)){
+                if(directory.existsSync()){
+                  String newPath = "${directory.path.substring(0,directory.path.lastIndexOf(RegExp(r"[/\\]")))}/$newName";
+                  directory.renameSync(newPath);
+                  return "Successfully renamed Directory.";
+                }else{
+                  throw "Directory does not exists.";
+                }
+              }else{
+                throw "Access to outside the drive folder is denied.";
+              }
+            },
+            //Rename file
+            "renameFile":(arguments)async{
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              if(Platform.isWindows){
+                drivePath.replaceAll("/", "\\");
+              }
+              String newName = arguments["newName"];
+              File file = File(arguments["fullPath"]);
+              //This resolves things like ../ to an absolute path
+              file = File(file.resolveSymbolicLinksSync());
+              if(file.path.startsWith(drivePath)){
+                if(file.existsSync()){
+                  String newPath = "${file.path.substring(0,file.path.lastIndexOf(RegExp(r"[/\\]")))}/$newName";
+                  file.renameSync(newPath);
+                  return "Successfully renamed File.";
+                }else{
+                  throw "File does not exists.";
+                }
+              }else{
+                throw "Access to outside the drive folder is denied.";
+              }
+            },
           },
         ), 
         redirectHandler: (arguments)=> null,
