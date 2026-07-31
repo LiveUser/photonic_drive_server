@@ -38,8 +38,40 @@ class Dashboard extends StatelessWidget {
         query: GrapheneQuery(
           resolver: {
             //TODO: List folder contents
-
-            //TODO: Get images metadata list
+            "listDirContents":(arguments)async{
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              if(Platform.isWindows){
+                drivePath.replaceAll("/", "\\");
+              }
+              Directory directory = Directory(arguments["fullPath"]);
+              //This resolves things like ../ to an absolute path
+              directory = Directory(directory.resolveSymbolicLinksSync());
+              if(directory.path.startsWith(drivePath)){
+                if(directory.existsSync()){
+                  List<Map<String,dynamic>> directoryContents = [];
+                  List<FileSystemEntity> contents = directory.listSync();
+                  for(FileSystemEntity element in contents){
+                    if(element is Directory){
+                      directoryContents.add({
+                        "type": "dir",
+                        "fullPath": element.path,
+                      });
+                    }else{
+                      directoryContents.add({
+                        "type": "file",
+                        "fullPath": element.path,
+                      });
+                    }
+                  }
+                  return directoryContents;
+                }else{
+                  throw "Directory does not exists.";
+                }
+              }else{
+                throw "Access to outside the drive folder is denied.";
+              }
+            },
+            //TODO: Get images metadata list (crawl all folders, filter by image extension, extract metadata, return list)
 
             //TODO: Fetch image thumbnail
             
@@ -76,6 +108,26 @@ class Dashboard extends StatelessWidget {
               File newFile = File(arguments["fullPath"]);
               //This resolves things like ../ to an absolute path
               newFile = File(newFile.resolveSymbolicLinksSync());
+              String fileName = "";
+              String folderPath = "";
+              if(Platform.isWindows){
+                fileName = newFile.path.substring(newFile.path.lastIndexOf("\\") + 1, newFile.path.lastIndexOf("."));
+                folderPath = newFile.path.substring(0,newFile.path.lastIndexOf("\\"));
+              }else{
+                fileName = newFile.path.substring(newFile.path.lastIndexOf("/") + 1, newFile.path.lastIndexOf("."));
+                folderPath = newFile.path.substring(0,newFile.path.lastIndexOf("/"));
+              }
+              String extension = newFile.path.substring(newFile.path.lastIndexOf("."));
+              int i = 0;
+              File validFile;
+              do{
+                if(i == 0){
+                  validFile = File("$folderPath/$fileName$extension");
+                }else{
+                  validFile = File("$folderPath/$fileName-$i$extension");
+                }
+                i++;
+              }while(validFile.existsSync());
               if(newFile.path.startsWith(drivePath)){
                 if(!newFile.existsSync()){
                   newFile.createSync(recursive: true);
