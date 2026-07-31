@@ -18,6 +18,34 @@ class Dashboard extends StatelessWidget {
   final String databaseLocation;
   final int serverPort;
 
+  bool tokenIsValid({
+    required String databaseLocation,
+    required String accessToken,
+  }){
+    Entry entry = Entry(
+      dbPath: databaseLocation,
+    );
+    List<String> accessTokens = [];
+    try{
+      accessTokens = List<String>.from(entry.select().view()["accessTokens"]);
+    }catch(error){
+      accessTokens = [];
+    }
+    if(accessTokens.contains(accessToken)){
+      return true;
+    }else{
+      return false;
+    }
+  }
+  void verifyValidity({
+    required String databaseLocation,
+    required String accessToken,
+  }){
+    if(!tokenIsValid(databaseLocation: databaseLocation, accessToken: accessToken)){
+      throw "Token invalid: Access denied.";
+    }
+  }
+
   Future<HttpServer> bindServer()async{
     //Directory x = Directory("../");
     //x = Directory(x.resolveSymbolicLinksSync());
@@ -33,12 +61,15 @@ class Dashboard extends StatelessWidget {
         getHandler: GetHandler(
           handler: (arguments)async{ 
             return Uint8List.fromList([]);
-          }
+          },
         ), 
         query: GrapheneQuery(
           resolver: {
             //TODO: List folder contents
             "listDirContents":(arguments)async{
+              if(!tokenIsValid(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"])){
+                throw "Token invalid: Access denied.";
+              }
               String drivePath = "${arguments["databaseLocation"]}/drive";
               if(Platform.isWindows){
                 drivePath.replaceAll("/", "\\");
@@ -71,6 +102,10 @@ class Dashboard extends StatelessWidget {
                 throw "Access to outside the drive folder is denied.";
               }
             },
+            //TODO: tokenIsValid
+            "tokenIsValid":(arguments)async{
+              return tokenIsValid(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
+            },
             //TODO: Get images metadata list (crawl all folders, filter by image extension, extract metadata, return list)
 
             //TODO: Fetch image thumbnail
@@ -81,6 +116,8 @@ class Dashboard extends StatelessWidget {
           resolver: {
             //Create directory
             "createDir":(arguments)async{
+              //Throws an error if access token is invalid
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
               if(Platform.isWindows){
                 drivePath.replaceAll("/", "\\");
@@ -101,6 +138,8 @@ class Dashboard extends StatelessWidget {
             },
             //Create file
             "createFile":(arguments)async{
+              //Throws an error if access token is invalid
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
               if(Platform.isWindows){
                 drivePath.replaceAll("/", "\\");
@@ -141,6 +180,8 @@ class Dashboard extends StatelessWidget {
             },
             //Delete directory
             "deleteDir":(arguments)async{
+              //Throws an error if access token is invalid
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
               if(Platform.isWindows){
                 drivePath.replaceAll("/", "\\");
@@ -161,6 +202,8 @@ class Dashboard extends StatelessWidget {
             },
             //Delete file
             "deleteFile":(arguments)async{
+              //Throws an error if access token is invalid
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
               if(Platform.isWindows){
                 drivePath.replaceAll("/", "\\");
@@ -181,6 +224,8 @@ class Dashboard extends StatelessWidget {
             },
             //Rename directory
             "renameDir":(arguments)async{
+              //Throws an error if access token is invalid
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
               if(Platform.isWindows){
                 drivePath.replaceAll("/", "\\");
@@ -203,6 +248,8 @@ class Dashboard extends StatelessWidget {
             },
             //Rename file
             "renameFile":(arguments)async{
+              //Throws an error if access token is invalid
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
               if(Platform.isWindows){
                 drivePath.replaceAll("/", "\\");
