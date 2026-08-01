@@ -51,6 +51,12 @@ class Dashboard extends StatelessWidget {
     //x = Directory(x.resolveSymbolicLinksSync());
     //print(x.absolute.path);
     try{
+      //Create drive folder before starting the server
+      Directory driveFolder = Directory("$databaseLocation/drive");
+      if(!driveFolder.existsSync()){
+        driveFolder.createSync(recursive: true);
+      }
+
       HttpServer server = await HttpServer.bind(InternetAddress.loopbackIPv4, serverPort);
       //Create server functions
       startServer(
