@@ -65,7 +65,7 @@ class Dashboard extends StatelessWidget {
         ), 
         query: GrapheneQuery(
           resolver: {
-            //TODO: List folder contents
+            //List folder contents
             "listDirContents":(arguments)async{
               if(!tokenIsValid(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"])){
                 throw "Token invalid: Access denied.";
@@ -75,6 +75,9 @@ class Dashboard extends StatelessWidget {
                 drivePath.replaceAll("/", "\\");
               }
               Directory directory = Directory(arguments["fullPath"]);
+              if(directory.path.isEmpty){
+                directory = Directory(drivePath);
+              }
               //This resolves things like ../ to an absolute path
               directory = Directory(directory.resolveSymbolicLinksSync());
               if(directory.path.startsWith(drivePath)){
@@ -102,7 +105,7 @@ class Dashboard extends StatelessWidget {
                 throw "Access to outside the drive folder is denied.";
               }
             },
-            //TODO: tokenIsValid
+            //Verify that the access token is valid
             "tokenIsValid":(arguments)async{
               return tokenIsValid(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
             },
