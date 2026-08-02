@@ -49,11 +49,11 @@ class Dashboard extends StatelessWidget {
 
   bool isPathWithinParent(String parentDir, String requestedPath) {
     // 1. Convert to absolute and normalize (removes '.' and '..')
-    final cleanParent = path.canonicalize(parentDir);
-    final cleanRequested = path.canonicalize(requestedPath);
+    String cleanParent = path.canonicalize(parentDir);
+    String cleanRequested = path.canonicalize(requestedPath);
 
     // 2. Check if the requested path starts with the parent path
-    return path.isWithin(cleanParent, cleanRequested);
+    return (cleanParent == cleanRequested || path.isWithin(cleanParent, cleanRequested));
   }
 
   Future<HttpServer> bindServer()async{
