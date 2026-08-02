@@ -149,7 +149,7 @@ class Dashboard extends StatelessWidget {
             "createFile":(arguments)async{
               //Throws an error if access token is invalid
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
-              Uint8List bytes = Uint8List.from(List<int>.from(arguments["bytes"]));
+              Uint8List bytes = Uint8List.fromList(List<int>.from(arguments["bytes"]));
               String drivePath = "${arguments["databaseLocation"]}/drive";
               if(Platform.isWindows){
                 drivePath.replaceAll("/", "\\");
