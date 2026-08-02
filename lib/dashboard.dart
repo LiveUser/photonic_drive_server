@@ -149,6 +149,7 @@ class Dashboard extends StatelessWidget {
             "createFile":(arguments)async{
               //Throws an error if access token is invalid
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
+              Uint8List bytes = Uint8List.from(List<int>.from(arguments["bytes"]));
               String drivePath = "${arguments["databaseLocation"]}/drive";
               if(Platform.isWindows){
                 drivePath.replaceAll("/", "\\");
@@ -179,6 +180,7 @@ class Dashboard extends StatelessWidget {
               if(newFile.path.startsWith(drivePath)){
                 if(!newFile.existsSync()){
                   newFile.createSync(recursive: true);
+                  newFile.writeAsBytesSync(bytes);
                   return "Successfully created File.";
                 }else{
                   throw "File already exists.";
