@@ -7,6 +7,7 @@ import 'package:objective_db/objective_db.dart';
 import 'package:power_plant/power_plant.dart';
 import 'package:confirm_button/confirm_buttons.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as path;
 
 
 class Dashboard extends StatelessWidget {
@@ -46,10 +47,16 @@ class Dashboard extends StatelessWidget {
     }
   }
 
+  bool isPathWithinParent(String parentDir, String requestedPath) {
+    // 1. Convert to absolute and normalize (removes '.' and '..')
+    final cleanParent = path.canonicalize(parentDir);
+    final cleanRequested = path.canonicalize(requestedPath);
+
+    // 2. Check if the requested path starts with the parent path
+    return path.isWithin(cleanParent, cleanRequested);
+  }
+
   Future<HttpServer> bindServer()async{
-    //Directory x = Directory("../");
-    //x = Directory(x.resolveSymbolicLinksSync());
-    //print(x.absolute.path);
     try{
       //Create drive folder before starting the server
       Directory driveFolder = Directory("$databaseLocation/drive");
@@ -85,16 +92,11 @@ class Dashboard extends StatelessWidget {
                 throw "Token invalid: Access denied.";
               }
               String drivePath = "${arguments["databaseLocation"]}/drive";
-              if(Platform.isWindows){
-                drivePath.replaceAll("/", "\\");
-              }
               Directory directory = Directory(arguments["fullPath"]);
               if(directory.path.isEmpty){
                 directory = Directory(drivePath);
               }
-              //This resolves things like ../ to an absolute path
-              directory = Directory(directory.resolveSymbolicLinksSync());
-              if(directory.path.startsWith(drivePath)){
+              if(isPathWithinParent(drivePath, directory.path)){
                 if(directory.existsSync()){
                   List<Map<String,dynamic>> directoryContents = [];
                   List<FileSystemEntity> contents = directory.listSync();
@@ -136,13 +138,8 @@ class Dashboard extends StatelessWidget {
               //Throws an error if access token is invalid
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
-              if(Platform.isWindows){
-                drivePath.replaceAll("/", "\\");
-              }
               Directory newDirectory = Directory(arguments["fullPath"]);
-              //This resolves things like ../ to an absolute path
-              newDirectory = Directory(newDirectory.resolveSymbolicLinksSync());
-              if(newDirectory.path.startsWith(drivePath)){
+              if(isPathWithinParent(drivePath, newDirectory.path)){
                 if(!newDirectory.existsSync()){
                   newDirectory.createSync(recursive: true);
                   return "Successfully created Directory.";
@@ -159,12 +156,10 @@ class Dashboard extends StatelessWidget {
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               Uint8List bytes = Uint8List.fromList(List<int>.from(arguments["bytes"]));
               String drivePath = "${arguments["databaseLocation"]}/drive";
-              if(Platform.isWindows){
-                drivePath.replaceAll("/", "\\");
-              }
               File newFile = File(arguments["fullPath"]);
-              //This resolves things like ../ to an absolute path
-              newFile = File(newFile.resolveSymbolicLinksSync());
+              if(!isPathWithinParent(drivePath, newFile.path)){
+                throw "Access to outside the drive folder is denied.";
+              }
               String fileName = "";
               String folderPath = "";
               if(Platform.isWindows){
@@ -185,16 +180,12 @@ class Dashboard extends StatelessWidget {
                 }
                 i++;
               }while(validFile.existsSync());
-              if(newFile.path.startsWith(drivePath)){
-                if(!newFile.existsSync()){
-                  newFile.createSync(recursive: true);
-                  newFile.writeAsBytesSync(bytes);
-                  return "Successfully created File.";
-                }else{
-                  throw "File already exists.";
-                }
+              if(!newFile.existsSync()){
+                newFile.createSync(recursive: true);
+                newFile.writeAsBytesSync(bytes);
+                return "Successfully created File.";
               }else{
-                throw "Access to outside the drive folder is denied.";
+                throw "File already exists.";
               }
             },
             //Delete directory
@@ -202,13 +193,8 @@ class Dashboard extends StatelessWidget {
               //Throws an error if access token is invalid
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
-              if(Platform.isWindows){
-                drivePath.replaceAll("/", "\\");
-              }
               Directory directory = Directory(arguments["fullPath"]);
-              //This resolves things like ../ to an absolute path
-              directory = Directory(directory.resolveSymbolicLinksSync());
-              if(directory.path.startsWith(drivePath)){
+              if(isPathWithinParent(drivePath, directory.path)){
                 if(directory.existsSync()){
                   directory.deleteSync(recursive: true);
                   return "Successfully deleted Directory.";
@@ -224,13 +210,8 @@ class Dashboard extends StatelessWidget {
               //Throws an error if access token is invalid
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
-              if(Platform.isWindows){
-                drivePath.replaceAll("/", "\\");
-              }
               File file = File(arguments["fullPath"]);
-              //This resolves things like ../ to an absolute path
-              file = File(file.resolveSymbolicLinksSync());
-              if(file.path.startsWith(drivePath)){
+              if(isPathWithinParent(drivePath, file.path)){
                 if(file.existsSync()){
                   file.deleteSync(recursive: true);
                   return "Successfully deleted File.";
@@ -246,14 +227,9 @@ class Dashboard extends StatelessWidget {
               //Throws an error if access token is invalid
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
-              if(Platform.isWindows){
-                drivePath.replaceAll("/", "\\");
-              }
               String newName = arguments["newName"];
               Directory directory = Directory(arguments["fullPath"]);
-              //This resolves things like ../ to an absolute path
-              directory = Directory(directory.resolveSymbolicLinksSync());
-              if(directory.path.startsWith(drivePath)){
+              if(isPathWithinParent(drivePath, directory.path)){
                 if(directory.existsSync()){
                   String newPath = "${directory.path.substring(0,directory.path.lastIndexOf(RegExp(r"[/\\]")))}/$newName";
                   directory.renameSync(newPath);
@@ -270,14 +246,9 @@ class Dashboard extends StatelessWidget {
               //Throws an error if access token is invalid
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
-              if(Platform.isWindows){
-                drivePath.replaceAll("/", "\\");
-              }
               String newName = arguments["newName"];
               File file = File(arguments["fullPath"]);
-              //This resolves things like ../ to an absolute path
-              file = File(file.resolveSymbolicLinksSync());
-              if(file.path.startsWith(drivePath)){
+              if(isPathWithinParent(drivePath, file.path)){
                 if(file.existsSync()){
                   String newPath = "${file.path.substring(0,file.path.lastIndexOf(RegExp(r"[/\\]")))}/$newName";
                   file.renameSync(newPath);

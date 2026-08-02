@@ -36,6 +36,7 @@ dependencies:
   power_plant: ^1.0.2+3
   confirm_button: ^1.0.0+2
   objective_db: ^0.3.3+27
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:
