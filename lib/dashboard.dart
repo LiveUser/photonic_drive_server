@@ -71,6 +71,14 @@ class Dashboard extends StatelessWidget {
         ), 
         query: GrapheneQuery(
           resolver: {
+            //Get drive location
+            "driveLocation": (arguments)async{
+              //Throws an error if access token is invalid
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              drivePath = drivePath.replaceAll("\\", "/");
+              return drivePath;
+            },
             //List folder contents
             "listDirContents":(arguments)async{
               if(!tokenIsValid(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"])){
