@@ -37,6 +37,7 @@ dependencies:
   confirm_button: ^1.0.0+2
   objective_db: ^0.3.3+27
   path: ^1.9.1
+  pixer: ^0.0.8
 
 dev_dependencies:
   flutter_test:

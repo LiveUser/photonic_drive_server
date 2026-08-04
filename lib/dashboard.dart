@@ -8,7 +8,7 @@ import 'package:power_plant/power_plant.dart';
 import 'package:confirm_button/confirm_buttons.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
-
+import 'package:pixer/pixer.dart';
 
 class Dashboard extends StatelessWidget {
   const Dashboard({
@@ -127,8 +127,36 @@ class Dashboard extends StatelessWidget {
             },
             //TODO: Get images metadata list (crawl all folders, filter by image extension, extract metadata, return list)
 
-            //TODO: Fetch image thumbnail
-            
+            //Fetch image thumbnail
+            "getThumbnail":(arguments)async{
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              String filePath = arguments["filePath"];
+              if(!isPathWithinParent(drivePath, filePath)){
+                throw "Access to outside the drive folder is denied.";
+              }
+              File file = File(
+                filePath,
+              );
+              Uint8List bytes = file.readAsBytesSync();
+              //TODO: Generate thumbnail
+              Pixer image = Pixer.fromMemory(bytes);
+              image = image.resize(300, 300);
+              return image.encode(PixerPngEncoder());
+            },
+            //Fetch full file
+            "getFullFile":(arguments)async{
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              String filePath = arguments["filePath"];
+              if(!isPathWithinParent(drivePath, filePath)){
+                throw "Access to outside the drive folder is denied.";
+              }
+              File file = File(
+                filePath,
+              );
+              return file.readAsBytesSync();
+            },
           },
         ), 
         mutations: GrapheneMutation(
