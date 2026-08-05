@@ -139,7 +139,7 @@ class Dashboard extends StatelessWidget {
                 filePath,
               );
               Uint8List bytes = file.readAsBytesSync();
-              //TODO: Generate thumbnail
+              //Generate thumbnail
               Pixer image = Pixer.fromMemory(bytes);
               image = image.resize(300, 300);
               return image.encode(PixerPngEncoder());
