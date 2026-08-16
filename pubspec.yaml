@@ -38,6 +38,7 @@ dependencies:
   objective_db: ^0.3.3+27
   path: ^1.9.1
   pixer: ^0.0.8
+  
 
 dev_dependencies:
   flutter_test:

@@ -126,7 +126,12 @@ class Dashboard extends StatelessWidget {
               return tokenIsValid(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
             },
             //TODO: Get images metadata list (crawl all folders, filter by image extension, extract metadata, return list)
-
+            "fetchAll": (arguments)async{
+              verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
+              String drivePath = "${arguments["databaseLocation"]}/drive";
+              List<Map<String,dynamic>> filesAndMetadata = [];
+              
+            },
             //Fetch image thumbnail
             "getThumbnail":(arguments)async{
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
@@ -140,8 +145,9 @@ class Dashboard extends StatelessWidget {
               );
               Uint8List bytes = file.readAsBytesSync();
               //Generate thumbnail
+              int size = arguments["size"] ?? 100;
               Pixer image = Pixer.fromMemory(bytes);
-              image = image.resize(300, 300);
+              image = image.resize(size, size);
               return image.encode(PixerPngEncoder());
             },
             //Fetch full file
