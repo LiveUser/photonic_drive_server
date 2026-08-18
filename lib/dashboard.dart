@@ -9,6 +9,7 @@ import 'package:confirm_button/confirm_buttons.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:pixer/pixer.dart';
+import 'package:exif_reader/exif_reader.dart';
 
 class Dashboard extends StatelessWidget {
   const Dashboard({
@@ -125,12 +126,30 @@ class Dashboard extends StatelessWidget {
             "tokenIsValid":(arguments)async{
               return tokenIsValid(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
             },
-            //TODO: Get images metadata list (crawl all folders, filter by image extension, extract metadata, return list)
+            //Get images metadata list (crawl all folders, filter by image extension, extract metadata, return list)
             "fetchAll": (arguments)async{
               verifyValidity(databaseLocation: arguments["databaseLocation"], accessToken: arguments["accessToken"]);
               String drivePath = "${arguments["databaseLocation"]}/drive";
               List<Map<String,dynamic>> filesAndMetadata = [];
-              
+              List<FileSystemEntity> folderContents = Directory(drivePath).listSync(recursive: true);
+              for(FileSystemEntity entity in folderContents){
+                if(entity is File){
+                  Uint8List bytes = entity.readAsBytesSync();
+                  ExifData exifData = await readExifFromBytes(bytes);
+                  if(exifData.warnings.isEmpty && exifData.tags.isNotEmpty){
+                    Map<String,dynamic> metadata = {
+                      "fullPath": entity.path,
+                    };
+                    for(String key in exifData.tags.keys){
+                      metadata.addAll({
+                        key: exifData.tags[key]?.values.toString(),
+                      });
+                    }
+                    filesAndMetadata.add(metadata);
+                  }
+                }
+              }
+              return filesAndMetadata;
             },
             //Fetch image thumbnail
             "getThumbnail":(arguments)async{
